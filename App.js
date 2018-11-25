@@ -9,18 +9,22 @@ export default class App extends React.Component {
       let row = [];
       for (let j = 0; j < 3; j++) {
         row.push(
-          <TouchableOpacity style={styles.btn} key={nums[i][j]}>
+          <TouchableOpacity style={styles.btn} key={`btn-${j}`}>
             <Text style={styles.btnText}>{nums[i][j]}</Text>
           </TouchableOpacity>
         );
       }
-      rows.push(<View style={styles.row}>{row}</View>);
+      rows.push(
+        <View style={styles.row} key={`row-${i}`}>
+          {row}
+        </View>
+      );
     }
     let operations = ["+", "-", "*", "/"];
     let ops = [];
     for (let i = 0; i < 4; i++) {
       ops.push(
-        <TouchableOpacity style={styles.btn}>
+        <TouchableOpacity style={styles.btn} key={`op-${i}`}>
           <Text style={[styles.btnText, styles.white]}>{operations[i]}</Text>
         </TouchableOpacity>
       );
