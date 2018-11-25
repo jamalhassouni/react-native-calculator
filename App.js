@@ -6,14 +6,23 @@ export default class App extends React.Component {
     super(props);
     this.state = {
       resultText: "",
-      calculationText: 0
+      calculationText: 0,
+      resultTextStyle: { fontSize: 30 },
+      operations: ["DEL", "+", "-", "*", "/"]
     };
-    this.operations = ["DEL", "+", "-", "*", "/"];
   }
   calculateResult() {
     const text = this.state.resultText;
     // now parse this text eg: 3*4^5-4/14+3
-    this.setState({ calculationText: eval(text) });
+    if (text != "") {
+      this.setState({
+        resultText: String(eval(text)),
+        resultTextStyle: { fontSize: 40, fontWeight: "300" },
+        calculationText: ""
+      });
+    } else {
+      this.setState({ calculationText: 0 });
+    }
   }
   validate() {
     const text = this.state.resultText;
@@ -28,12 +37,19 @@ export default class App extends React.Component {
   }
 
   buttonPressed(text) {
-    console.log(text);
     if (text == "=") {
+      this.setState({ operations: ["CLR", "+", "-", "*", "/"] });
       return this.validate() && this.calculateResult();
     }
     this.setState({
-      resultText: this.state.resultText + text
+      resultText: this.state.resultText + text,
+      operations: ["DEL", "+", "-", "*", "/"],
+      calculationText: eval(this.state.resultText + text),
+      calculationTextStyle: {
+        fontSize: 20,
+        color: "#636363",
+        fontWeight: "100"
+      }
     });
   }
   operate(operation) {
@@ -46,12 +62,18 @@ export default class App extends React.Component {
           resultText: text.join("")
         });
         break;
+      case "CLR":
+        this.setState({
+          resultText: "",
+          calculationText: 0
+        });
+        break;
       case "+":
       case "-":
       case "*":
       case "/":
         const lastChar = this.state.resultText.split("").pop();
-        if (this.operations.indexOf(lastChar) > 0) return;
+        if (this.state.operations.indexOf(lastChar) > 0) return;
 
         if (this.state.text == "") return;
         this.setState({
@@ -70,7 +92,7 @@ export default class App extends React.Component {
           <TouchableOpacity
             onPress={() => this.buttonPressed(nums[i][j])}
             style={styles.btn}
-            key={`btn-${j}`}
+            key={`btn-${nums[i][j]}`}
           >
             <Text style={styles.btnText}>{nums[i][j]}</Text>
           </TouchableOpacity>
@@ -83,15 +105,15 @@ export default class App extends React.Component {
       );
     }
     let ops = [];
-    for (let i = 0; i < this.operations.length; i++) {
+    for (let i = 0; i < this.state.operations.length; i++) {
       ops.push(
         <TouchableOpacity
           style={styles.btn}
           key={`op-${i}`}
-          onPress={() => this.operate(this.operations[i])}
+          onPress={() => this.operate(this.state.operations[i])}
         >
           <Text style={[styles.btnText, styles.white]}>
-            {this.operations[i]}
+            {this.state.operations[i]}
           </Text>
         </TouchableOpacity>
       );
@@ -99,10 +121,15 @@ export default class App extends React.Component {
     return (
       <View style={styles.container}>
         <View style={styles.result}>
-          <Text style={styles.resultText}> {this.state.resultText}</Text>
+          <Text style={[styles.resultText, this.state.resultTextStyle]}>
+            {" "}
+            {this.state.resultText}
+          </Text>
         </View>
         <View style={styles.calculation}>
-          <Text style={styles.calculationText}>
+          <Text
+            style={[styles.calculationText, this.state.calculationTextStyle]}
+          >
             {this.state.calculationText}
           </Text>
         </View>
@@ -120,18 +147,18 @@ const styles = StyleSheet.create({
     flex: 1
   },
   resultText: {
-    fontSize: 30,
-    color: "white"
+    color: "black"
   },
   white: {
     color: "white"
   },
   btnText: {
-    fontSize: 30
+    fontSize: 30,
+    color: "white"
   },
   calculationText: {
     fontSize: 24,
-    color: "white"
+    color: "black"
   },
   row: {
     flex: 1,
@@ -147,22 +174,22 @@ const styles = StyleSheet.create({
   },
   result: {
     flex: 2,
-    backgroundColor: "red",
+    backgroundColor: "white",
     justifyContent: "center",
     alignItems: "flex-end"
   },
   calculation: {
     flex: 1,
-    backgroundColor: "green",
+    backgroundColor: "white",
     justifyContent: "center",
     alignItems: "flex-end"
   },
   buttons: { flex: 7, flexDirection: "row" },
-  numbers: { flex: 3, backgroundColor: "yellow" },
+  numbers: { flex: 3, backgroundColor: "#434343" },
   operations: {
     flex: 1,
     justifyContent: "space-around",
     alignItems: "stretch",
-    backgroundColor: "black"
+    backgroundColor: "#636363"
   }
 });
