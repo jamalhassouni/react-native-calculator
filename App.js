@@ -2,14 +2,49 @@ import React from "react";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 
 export default class App extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      resultText: ""
+    };
+  }
+  calculateResult() {
+    const text = this.state.resultText;
+    // now parse this text eg: 3*4^5-4/14+3
+  }
+  buttonPressed(text) {
+    console.log(text);
+    if (text == "=") {
+      return calculateResult(this.state.resultText);
+    }
+    this.setState({
+      resultText: this.state.resultText + text
+    });
+  }
+  operate(operation) {
+    switch (operation) {
+      case "DEL":
+        let text = this.state.resultText.split("");
+        text.pop();
+
+        this.setState({
+          resultText: text.join('')
+        });
+    }
+  }
+
   render() {
     let rows = [];
-    let nums = [[1, 2, 3], [4, 5, 6], [7, 8, 9], [0, 0, "="]];
+    let nums = [[1, 2, 3], [4, 5, 6], [7, 8, 9], [".", 0, "="]];
     for (let i = 0; i < 4; i++) {
       let row = [];
       for (let j = 0; j < 3; j++) {
         row.push(
-          <TouchableOpacity style={styles.btn} key={`btn-${j}`}>
+          <TouchableOpacity
+            onPress={() => this.buttonPressed(nums[i][j])}
+            style={styles.btn}
+            key={`btn-${j}`}
+          >
             <Text style={styles.btnText}>{nums[i][j]}</Text>
           </TouchableOpacity>
         );
@@ -20,11 +55,15 @@ export default class App extends React.Component {
         </View>
       );
     }
-    let operations = ["+", "-", "*", "/"];
+    let operations = ["DEL", "+", "-", "*", "/"];
     let ops = [];
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 5; i++) {
       ops.push(
-        <TouchableOpacity style={styles.btn} key={`op-${i}`}>
+        <TouchableOpacity
+          style={styles.btn}
+          key={`op-${i}`}
+          onPress={() => this.operate(operations[i])}
+        >
           <Text style={[styles.btnText, styles.white]}>{operations[i]}</Text>
         </TouchableOpacity>
       );
@@ -32,7 +71,7 @@ export default class App extends React.Component {
     return (
       <View style={styles.container}>
         <View style={styles.result}>
-          <Text style={styles.resultText}> 11*11</Text>
+          <Text style={styles.resultText}> {this.state.resultText}</Text>
         </View>
         <View style={styles.calculation}>
           <Text style={styles.calculationText}>121</Text>
