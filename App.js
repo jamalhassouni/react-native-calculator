@@ -5,18 +5,32 @@ export default class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      resultText: ""
+      resultText: "",
+      calculationText: 0
     };
     this.operations = ["DEL", "+", "-", "*", "/"];
   }
   calculateResult() {
     const text = this.state.resultText;
     // now parse this text eg: 3*4^5-4/14+3
+    this.setState({ calculationText: eval(text) });
   }
+  validate() {
+    const text = this.state.resultText;
+    switch (text.slice(-1)) {
+      case "+":
+      case "-":
+      case "*":
+      case "/":
+        return false;
+    }
+    return true;
+  }
+
   buttonPressed(text) {
     console.log(text);
     if (text == "=") {
-      return calculateResult(this.state.resultText);
+      return this.validate() && this.calculateResult();
     }
     this.setState({
       resultText: this.state.resultText + text
@@ -88,7 +102,9 @@ export default class App extends React.Component {
           <Text style={styles.resultText}> {this.state.resultText}</Text>
         </View>
         <View style={styles.calculation}>
-          <Text style={styles.calculationText}>121</Text>
+          <Text style={styles.calculationText}>
+            {this.state.calculationText}
+          </Text>
         </View>
         <View style={styles.buttons}>
           <View style={styles.numbers}>{rows}</View>
