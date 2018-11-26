@@ -1,14 +1,14 @@
 {
   "expo": {
     "name": "calculator",
-    "description": "This project is really great.",
+    "description": "Simple Calculator Mobile App",
     "slug": "calculator",
     "privacy": "public",
     "sdkVersion": "31.0.0",
     "platforms": ["ios", "android"],
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/app-icon.png",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -21,7 +21,11 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.jamalh.calculator"
+    },
+    "android": {
+      "package": "com.jamalh.calculator"
     }
   }
 }
