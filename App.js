@@ -8,7 +8,7 @@ export default class App extends React.Component {
       resultText: "",
       calculationText: 0,
       resultTextStyle: { fontSize: 30 },
-      operations: ["DEL", "+", "-", "*", "/"]
+      operations: ["CLR","DEL", "+", "-", "*", "/"]
     };
   }
   calculateResult() {
@@ -24,8 +24,8 @@ export default class App extends React.Component {
       this.setState({ calculationText: 0 });
     }
   }
-  validate() {
-    const text = this.state.resultText;
+  validate(val) {
+    const text = val || this.state.resultText;
     switch (text.slice(-1)) {
       case "+":
       case "-":
@@ -38,12 +38,10 @@ export default class App extends React.Component {
 
   buttonPressed(text) {
     if (text == "=") {
-      this.setState({ operations: ["CLR", "+", "-", "*", "/"] });
       return this.validate() && this.calculateResult();
     }
     this.setState({
       resultText: this.state.resultText + text,
-      operations: ["DEL", "+", "-", "*", "/"],
       calculationText: eval(this.state.resultText + text),
       calculationTextStyle: {
         fontSize: 20,
@@ -57,9 +55,11 @@ export default class App extends React.Component {
       case "DEL":
         let text = this.state.resultText.split("");
         text.pop();
-
+        let calculationText =
+          this.validate(text.join("")) && eval(text.join(""));
         this.setState({
-          resultText: text.join("")
+          resultText: text.join(""),
+          calculationText: calculationText
         });
         break;
       case "CLR":
