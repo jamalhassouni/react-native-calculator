@@ -1,141 +1,212 @@
 import React from "react";
-import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  ScrollView
+} from "react-native";
+import Key from "./components/Key";
+
+// We are using math.js library to calculate results from any string expression
+
+const math = require("mathjs");
 
 export default class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      resultText: "",
-      calculationText: 0,
       resultTextStyle: { fontSize: 30 },
-      operations: ["CLR","DEL", "+", "-", "*", "/"]
+      operations: ["+", "-", "*", "/"],
+      brackets: ["(", ")"],
+      numbers: [1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
+      lastexpression: [],
+      expression: "",
+      result: ""
     };
+    this._assembleExpression = this._assembleExpression.bind(this);
+    this._calculateResult = this._calculateResult.bind(this);
+    this._rollbackExpression = this._rollbackExpression.bind(this);
+    this._echoSymbol = this._echoSymbol.bind(this);
+    this._clearExpression = this._clearExpression.bind(this);
   }
-  calculateResult() {
-    const text = this.state.resultText;
-    // now parse this text eg: 3*4^5-4/14+3
-    if (text != "") {
-      this.setState({
-        resultText: String(eval(text)),
-        resultTextStyle: { fontSize: 40, fontWeight: "300" },
-        calculationText: ""
-      });
+  _echoSymbol(symbol) {
+    if (symbol === "=") {
+      this._calculateResult();
+    } else if (symbol === "DEL") {
+      this._rollbackExpression();
+    } else if (symbol === "CLR") {
+      this._clearExpression();
     } else {
-      this.setState({ calculationText: 0 });
+      this._assembleExpression(symbol);
     }
   }
-  validate(val) {
-    const text = val || this.state.resultText;
-    switch (text.slice(-1)) {
-      case "+":
-      case "-":
-      case "*":
-      case "/":
-        return false;
+  _clearExpression() {
+    this.state.expression &&
+      this.setState({
+        expression: "",
+        lastexpression: [],
+        result: 0
+      });
+  }
+  _rollbackExpression() {
+    let newExperssion;
+    try {
+      result = math.eval(this.state.lastexpression.join(""));
+    } catch (e) {
+      newExperssion = this.state.expression.split("");
+      let lastChar = newExperssion[newExperssion.length - 1];
+      if (this.state.operations.indexOf(lastChar) > -1) {
+        result = 0; // math.eval(arr.join(""));
+      } else {
+        //lastChar = arr.pop();
+        console.log("not equal");
+        result = 1; //math.eval(arr.join(""));
+      }
     }
-    return true;
+    console.log("lastexpression", this.state.lastexpression);
+    this.setState(prevState => ({
+      expression: prevState.lastexpression.pop(),
+      lastexpression: prevState.lastexpression,
+      result: result
+    }));
   }
 
-  buttonPressed(text) {
-    if (text == "=") {
-      return this.validate() && this.calculateResult();
+  _assembleExpression(symbol) {
+    let newExperssion;
+    let result = this.state.result;
+    try {
+      result = math.eval(this.state.expression + symbol);
+      this.setState(prevState => ({
+        lastexpression: [...prevState.lastexpression, prevState.expression],
+        expression: prevState.expression + symbol,
+        result: result
+      }));
+    } catch (e) {
+      newExperssion = this.state.expression && this.state.expression.split("");
+      let lastChar = newExperssion[newExperssion.length - 1];
+      if (
+        this.state.operations.indexOf(symbol) > -1 &&
+        this.state.operations.indexOf(lastChar) > -1
+      ) {
+        newExperssion[newExperssion.length - 1] = symbol;
+        result = newExperssion.slice(0, newExperssion.length - 1).join("");
+        result = math.eval(result);
+      } else if (
+        this.state.operations.indexOf(symbol) > -1 &&
+        lastChar != "(" &&
+        this.state.numbers.includes(Number(symbol))
+      ) {
+        newExperssion.push(symbol);
+        newExperssion[newExperssion.length - 1] = symbol;
+        result = newExperssion.slice(0, newExperssion.length - 1).join("");
+        result = math.eval(result);
+      } else {
+        if (typeof newExperssion != "string") {
+          newExperssion.push(symbol);
+        } else {
+          newExperssion = this.state.expression + symbol;
+          newExperssion = newExperssion.split("");
+        }
+      }
+      this.setState(prevState => ({
+        lastexpression: [...prevState.lastexpression, newExperssion.join("")],
+        expression: newExperssion.join(""),
+        result: result
+      }));
+    }
+  }
+
+  _calculateResult() {
+    let result;
+    try {
+      result = math.eval(this.state.expression);
+    } catch (e) {
+      result = "Syntax Error";
     }
     this.setState({
-      resultText: this.state.resultText + text,
-      calculationText: eval(this.state.resultText + text),
-      calculationTextStyle: {
-        fontSize: 20,
-        color: "#636363",
-        fontWeight: "100"
-      }
+      result: "",
+      expression: result,
+      resultTextStyle: { fontSize: 40, fontWeight: "300" }
     });
-  }
-  operate(operation) {
-    switch (operation) {
-      case "DEL":
-        let text = this.state.resultText.split("");
-        text.pop();
-        let calculationText =
-          this.validate(text.join("")) && eval(text.join(""));
-        this.setState({
-          resultText: text.join(""),
-          calculationText: calculationText
-        });
-        break;
-      case "CLR":
-        this.setState({
-          resultText: "",
-          calculationText: 0
-        });
-        break;
-      case "+":
-      case "-":
-      case "*":
-      case "/":
-        const lastChar = this.state.resultText.split("").pop();
-        if (this.state.operations.indexOf(lastChar) > 0) return;
-
-        if (this.state.text == "") return;
-        this.setState({
-          resultText: this.state.resultText + operation
-        });
-    }
   }
 
   render() {
-    let rows = [];
-    let nums = [[1, 2, 3], [4, 5, 6], [7, 8, 9], [".", 0, "="]];
-    for (let i = 0; i < 4; i++) {
-      let row = [];
-      for (let j = 0; j < 3; j++) {
-        row.push(
-          <TouchableOpacity
-            onPress={() => this.buttonPressed(nums[i][j])}
-            style={styles.btn}
-            key={`btn-${nums[i][j]}`}
-          >
-            <Text style={styles.btnText}>{nums[i][j]}</Text>
-          </TouchableOpacity>
-        );
-      }
-      rows.push(
-        <View style={styles.row} key={`row-${i}`}>
-          {row}
-        </View>
-      );
-    }
-    let ops = [];
-    for (let i = 0; i < this.state.operations.length; i++) {
-      ops.push(
-        <TouchableOpacity
-          style={styles.btn}
-          key={`op-${i}`}
-          onPress={() => this.operate(this.state.operations[i])}
-        >
-          <Text style={[styles.btnText, styles.white]}>
-            {this.state.operations[i]}
-          </Text>
-        </TouchableOpacity>
-      );
-    }
     return (
       <View style={styles.container}>
         <View style={styles.result}>
           <Text style={[styles.resultText, this.state.resultTextStyle]}>
             {" "}
-            {this.state.resultText}
+            {this.state.expression}
           </Text>
         </View>
         <View style={styles.calculation}>
           <Text
             style={[styles.calculationText, this.state.calculationTextStyle]}
           >
-            {this.state.calculationText}
+            {this.state.result}
           </Text>
         </View>
+
         <View style={styles.buttons}>
-          <View style={styles.numbers}>{rows}</View>
-          <View style={styles.operations}>{ops}</View>
+          <View style={styles.numbers}>
+            <View style={styles.numgroup}>
+              <Key symbol={"1"} echoSymbol={this._echoSymbol} />
+              <Key symbol={"2"} echoSymbol={this._echoSymbol} />
+              <Key symbol={"3"} echoSymbol={this._echoSymbol} />
+            </View>
+            <View style={styles.numgroup}>
+              <Key symbol={"4"} echoSymbol={this._echoSymbol} />
+              <Key symbol={"5"} echoSymbol={this._echoSymbol} />
+              <Key symbol={"6"} echoSymbol={this._echoSymbol} />
+              <Key symbol={"7"} echoSymbol={this._echoSymbol} />
+            </View>
+            <View style={styles.numgroup}>
+              <Key symbol={"8"} echoSymbol={this._echoSymbol} />
+              <Key symbol={"9"} echoSymbol={this._echoSymbol} />
+              <Key symbol={"0"} echoSymbol={this._echoSymbol} />
+            </View>
+            <View style={styles.numgroup}>
+              <Key symbol={"."} echoSymbol={this._echoSymbol} />
+              <Key symbol={"="} echoSymbol={this._echoSymbol} />
+            </View>
+          </View>
+          <ScrollView
+            style={styles.other}
+            contentContainerStyle={styles.contentContainerStyle}
+            horizontal={false}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.numgroup}>
+              <Key
+                op={true}
+                backgroundColor="#ff7675"
+                symbol={"CLR"}
+                echoSymbol={this._echoSymbol}
+              />
+              <Key op={true} symbol={"DEL"} echoSymbol={this._echoSymbol} />
+            </View>
+            <View style={styles.numgroup}>
+              <Key op={true} symbol={"/"} echoSymbol={this._echoSymbol} />
+              <Key op={true} symbol={"+"} echoSymbol={this._echoSymbol} />
+            </View>
+            <View style={styles.numgroup}>
+              <Key op={true} symbol={"-"} echoSymbol={this._echoSymbol} />
+              <Key op={true} symbol={"*"} echoSymbol={this._echoSymbol} />
+            </View>
+            <View style={styles.numgroup}>
+              <Key op={true} symbol={"^"} echoSymbol={this._echoSymbol} />
+              <Key op={true} symbol={"sin"} echoSymbol={this._echoSymbol} />
+            </View>
+            <View style={styles.numgroup}>
+              <Key op={true} symbol={"cos"} echoSymbol={this._echoSymbol} />
+              <Key op={true} symbol={"tan"} echoSymbol={this._echoSymbol} />
+            </View>
+            <View style={styles.numgroup}>
+              <Key op={true} symbol={"("} echoSymbol={this._echoSymbol} />
+              <Key op={true} symbol={")"} echoSymbol={this._echoSymbol} />
+            </View>
+          </ScrollView>
         </View>
       </View>
     );
@@ -149,13 +220,6 @@ const styles = StyleSheet.create({
   resultText: {
     color: "black"
   },
-  white: {
-    color: "white"
-  },
-  btnText: {
-    fontSize: 30,
-    color: "white"
-  },
   calculationText: {
     fontSize: 24,
     color: "black"
@@ -165,12 +229,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center"
-  },
-  btn: {
-    flex: 1,
-    alignItems: "center",
-    alignSelf: "stretch",
-    justifyContent: "center"
   },
   result: {
     flex: 2,
@@ -184,12 +242,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "flex-end"
   },
+  numgroup: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "space-between"
+  },
   buttons: { flex: 7, flexDirection: "row" },
   numbers: { flex: 3, backgroundColor: "#434343" },
-  operations: {
+  other: {
     flex: 1,
-    justifyContent: "space-around",
-    alignItems: "stretch",
-    backgroundColor: "#636363"
+    backgroundColor: "#4f9a94"
+  },
+  contentContainerStyle: {
+    backgroundColor: "red"
   }
 });
