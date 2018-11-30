@@ -3,7 +3,6 @@ import {
   StyleSheet,
   Text,
   View,
-  TouchableOpacity,
   ScrollView
 } from "react-native";
 import Key from "./components/Key";
@@ -184,7 +183,9 @@ export default class App extends React.Component {
                 symbol={"CLR"}
                 echoSymbol={this._echoSymbol}
               />
-              <Key op={true} symbol={"DEL"} echoSymbol={this._echoSymbol} />
+            </View>
+            <View style={styles.numgroup}>
+            <Key op={true} symbol={"DEL"} echoSymbol={this._echoSymbol} />
             </View>
             <View style={styles.numgroup}>
               <Key op={true} symbol={"/"} echoSymbol={this._echoSymbol} />
