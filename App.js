@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  ScrollView
-} from "react-native";
+import { StyleSheet, Text, View, ScrollView } from "react-native";
 import Key from "./components/Key";
 
 // We are using math.js library to calculate results from any string expression
@@ -49,13 +44,20 @@ export default class App extends React.Component {
       });
   }
   _rollbackExpression() {
-    let newExperssion;
+    let newExperssion = this.state.lastexpression.pop();
+    let result = this.state.result;
     try {
-      result = math.eval(this.state.lastexpression.join(""));
+      result = math.eval(newExperssion.join(""));
+      this.setState(prevState => ({
+        lastexpression:  prevState.lastexpression,
+        expression: newExperssion,
+        result: result
+      }));
     } catch (e) {
-      newExperssion = this.state.expression.split("");
+      newExperssion =  newExperssion.split("");
       let lastChar = newExperssion[newExperssion.length - 1];
       if (this.state.operations.indexOf(lastChar) > -1) {
+        console.log("equal");
         result = 0; // math.eval(arr.join(""));
       } else {
         //lastChar = arr.pop();
@@ -63,7 +65,6 @@ export default class App extends React.Component {
         result = 1; //math.eval(arr.join(""));
       }
     }
-    console.log("lastexpression", this.state.lastexpression);
     this.setState(prevState => ({
       expression: prevState.lastexpression.pop(),
       lastexpression: prevState.lastexpression,
@@ -167,6 +168,7 @@ export default class App extends React.Component {
             </View>
             <View style={styles.numgroup}>
               <Key symbol={"."} echoSymbol={this._echoSymbol} />
+              <Key symbol={","} echoSymbol={this._echoSymbol} />
               <Key symbol={"="} echoSymbol={this._echoSymbol} />
             </View>
           </View>
@@ -185,7 +187,7 @@ export default class App extends React.Component {
               />
             </View>
             <View style={styles.numgroup}>
-            <Key op={true} symbol={"DEL"} echoSymbol={this._echoSymbol} />
+              <Key op={true} symbol={"DEL"} echoSymbol={this._echoSymbol} />
             </View>
             <View style={styles.numgroup}>
               <Key op={true} symbol={"/"} echoSymbol={this._echoSymbol} />
@@ -206,6 +208,14 @@ export default class App extends React.Component {
             <View style={styles.numgroup}>
               <Key op={true} symbol={"("} echoSymbol={this._echoSymbol} />
               <Key op={true} symbol={")"} echoSymbol={this._echoSymbol} />
+            </View>
+            <View style={styles.numgroup}>
+              <Key op={true} symbol={"log"} echoSymbol={this._echoSymbol} />
+              <Key op={true} symbol={"pow"} echoSymbol={this._echoSymbol} />
+            </View>
+            <View style={styles.numgroup}>
+              <Key op={true} symbol={"pi"} echoSymbol={this._echoSymbol} />
+              <Key op={true} symbol={"sqrt"} echoSymbol={this._echoSymbol} />
             </View>
           </ScrollView>
         </View>
