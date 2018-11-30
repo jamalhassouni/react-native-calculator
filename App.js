@@ -16,7 +16,8 @@ export default class App extends React.Component {
       numbers: [1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
       lastexpression: [],
       expression: "",
-      result: ""
+      result: "",
+      historyExpression: ""
     };
     this._assembleExpression = this._assembleExpression.bind(this);
     this._calculateResult = this._calculateResult.bind(this);
@@ -31,6 +32,10 @@ export default class App extends React.Component {
       this._rollbackExpression();
     } else if (symbol === "CLR") {
       this._clearExpression();
+    } else if (symbol == "H") {
+      this.setState(prevState => ({
+        expression: prevState.historyExpression
+      }));
     } else {
       this._assembleExpression(symbol);
     }
@@ -44,32 +49,49 @@ export default class App extends React.Component {
       });
   }
   _rollbackExpression() {
-    let newExperssion = this.state.lastexpression.pop();
-    let result = this.state.result;
-    try {
-      result = math.eval(newExperssion.join(""));
+    if (this.state.expression !== "") {
+      let result = this.state.result;
+      let preLastSecond;
+      let newExperssion = this.state.expression.split("");
+      newExperssion = newExperssion.slice(0, newExperssion.length - 1);
+      try {
+        result = math.eval(newExperssion.join(""));
+      } catch (e) {
+        let lastChar = newExperssion[newExperssion.length - 1];
+        if (this.state.operations.indexOf(lastChar) > -1) {
+          preLastSecond = newExperssion[newExperssion.length - 3];
+          if (preLastSecond == "(") {
+            result =
+              newExperssion.slice(0, newExperssion.length - 1).join("") + ")";
+            result = math.eval(result);
+          } else {
+            result = newExperssion.slice(0, newExperssion.length - 1).join("");
+            try {
+              result = math.eval(result);
+            } catch (e) {
+              console.log("ReferenceError: ", e);
+            }
+          }
+        } else {
+          if (
+            !(this.state.brackets.indexOf(lastChar) > -1) &&
+            !this.state.numbers.includes(Number(lastChar))
+          ) {
+            result = newExperssion.slice(0, newExperssion.length - 1).join("");
+            try {
+              result = math.eval(result);
+            } catch (e) {
+              console.log("ReferenceError: ", e);
+            }
+          }
+        }
+      }
       this.setState(prevState => ({
-        lastexpression:  prevState.lastexpression,
-        expression: newExperssion,
+        lastexpression: prevState.lastexpression,
+        expression: newExperssion.join(""),
         result: result
       }));
-    } catch (e) {
-      newExperssion =  newExperssion.split("");
-      let lastChar = newExperssion[newExperssion.length - 1];
-      if (this.state.operations.indexOf(lastChar) > -1) {
-        console.log("equal");
-        result = 0; // math.eval(arr.join(""));
-      } else {
-        //lastChar = arr.pop();
-        console.log("not equal");
-        result = 1; //math.eval(arr.join(""));
-      }
     }
-    this.setState(prevState => ({
-      expression: prevState.lastexpression.pop(),
-      lastexpression: prevState.lastexpression,
-      result: result
-    }));
   }
 
   _assembleExpression(symbol) {
@@ -124,11 +146,12 @@ export default class App extends React.Component {
     } catch (e) {
       result = "Syntax Error";
     }
-    this.setState({
+    this.setState(prevState => ({
       result: "",
       expression: result,
+      historyExpression: prevState.expression,
       resultTextStyle: { fontSize: 40, fontWeight: "300" }
-    });
+    }));
   }
 
   render() {
@@ -151,6 +174,7 @@ export default class App extends React.Component {
         <View style={styles.buttons}>
           <View style={styles.numbers}>
             <View style={styles.numgroup}>
+              <Key symbol={"H"} echoSymbol={this._echoSymbol} />
               <Key symbol={"1"} echoSymbol={this._echoSymbol} />
               <Key symbol={"2"} echoSymbol={this._echoSymbol} />
               <Key symbol={"3"} echoSymbol={this._echoSymbol} />
