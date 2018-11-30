@@ -10,7 +10,7 @@ export default class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      resultTextStyle: { fontSize: 30 },
+      expressionTextStyle: { fontSize: 30 },
       operations: ["+", "-", "*", "/"],
       brackets: ["(", ")"],
       numbers: [1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
@@ -150,22 +150,22 @@ export default class App extends React.Component {
       result: "",
       expression: result,
       historyExpression: prevState.expression,
-      resultTextStyle: { fontSize: 40, fontWeight: "300" }
+      expressionTextStyle: { fontSize: 40, fontWeight: "300" }
     }));
   }
 
   render() {
+    let {expressionTextStyle} = this.state;
     return (
       <View style={styles.container}>
         <View style={styles.result}>
-          <Text style={[styles.resultText, this.state.resultTextStyle]}>
-            {" "}
+          <Text style={[styles.resultText, expressionTextStyle]}>
             {this.state.expression}
           </Text>
         </View>
         <View style={styles.calculation}>
           <Text
-            style={[styles.calculationText, this.state.calculationTextStyle]}
+            style={styles.calculationText}
           >
             {this.state.result}
           </Text>
