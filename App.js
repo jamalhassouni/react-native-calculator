@@ -40,6 +40,7 @@ export default class App extends React.Component {
       this._assembleExpression(symbol);
     }
   }
+  // method to reset state
   _clearExpression() {
     this.state.expression &&
       this.setState({
@@ -48,37 +49,52 @@ export default class App extends React.Component {
         result: 0
       });
   }
+  // Performing calculations while deleting the last item
   _rollbackExpression() {
     if (this.state.expression !== "") {
       let result = this.state.result;
       let preLastSecond;
-      let newExperssion = this.state.expression.split("");
+      // convert expression to array
+      let newExperssion = this.state.expression.toString().split(/(\b)/g);
+      // remove space form  array
+      newExperssion = newExperssion.filter(e => e.trim() !== "");
       newExperssion = newExperssion.slice(0, newExperssion.length - 1);
+      // try to calculate new expression
       try {
-        result = math.eval(newExperssion.join(""));
+        result = math.eval(newExperssion.join("").replace('log','log10'));
       } catch (e) {
+        // get last character
         let lastChar = newExperssion[newExperssion.length - 1];
+        // check if  last character in operation array
         if (this.state.operations.indexOf(lastChar) > -1) {
+          // get  pre-last second  charachter
           preLastSecond = newExperssion[newExperssion.length - 3];
+          // if pre-last second  charachter equal  "(" add  ")" in last  string
           if (preLastSecond == "(") {
             result =
               newExperssion.slice(0, newExperssion.length - 1).join("") + ")";
+            //  calculate string result
+            result = result.replace('log','log10');
             result = math.eval(result);
           } else {
             result = newExperssion.slice(0, newExperssion.length - 1).join("");
             try {
+              result = result.replace('log','log10');
               result = math.eval(result);
             } catch (e) {
               console.log("ReferenceError: ", e);
             }
           }
         } else {
+          // if last charcter in  brackets array and  last character  not a number
           if (
             !(this.state.brackets.indexOf(lastChar) > -1) &&
             !this.state.numbers.includes(Number(lastChar))
           ) {
             result = newExperssion.slice(0, newExperssion.length - 1).join("");
             try {
+              //  calculate string result
+              result = result.replace('log','log10');
               result = math.eval(result);
             } catch (e) {
               console.log("ReferenceError: ", e);
@@ -86,6 +102,7 @@ export default class App extends React.Component {
           }
         }
       }
+      // update state with new  values
       this.setState(prevState => ({
         lastexpression: prevState.lastexpression,
         expression: newExperssion.join(""),
@@ -93,12 +110,15 @@ export default class App extends React.Component {
       }));
     }
   }
-
+  // adding symbol and using live  calculations
   _assembleExpression(symbol) {
     let newExperssion;
     let result = this.state.result;
+   // console.log(symbol,symbol.replace('log','log10'));
     try {
-      result = math.eval(this.state.expression + symbol);
+       expression =  this.state.expression + symbol;
+       expression = expression.replace('log','log10');
+      result = math.eval(expression);
       this.setState(prevState => ({
         lastexpression: [...prevState.lastexpression, prevState.expression],
         expression: prevState.expression + symbol,
@@ -113,6 +133,7 @@ export default class App extends React.Component {
       ) {
         newExperssion[newExperssion.length - 1] = symbol;
         result = newExperssion.slice(0, newExperssion.length - 1).join("");
+        result= result.replace('log','log10');
         result = math.eval(result);
       } else if (
         this.state.operations.indexOf(symbol) > -1 &&
@@ -122,6 +143,7 @@ export default class App extends React.Component {
         newExperssion.push(symbol);
         newExperssion[newExperssion.length - 1] = symbol;
         result = newExperssion.slice(0, newExperssion.length - 1).join("");
+        result = result.replace('log','log10');
         result = math.eval(result);
       } else {
         if (typeof newExperssion != "string") {
@@ -138,7 +160,9 @@ export default class App extends React.Component {
       }));
     }
   }
-
+  /* when clicking on symbol = calculate the results
+   and update state
+  */
   _calculateResult() {
     let result;
     try {
@@ -155,7 +179,7 @@ export default class App extends React.Component {
   }
 
   render() {
-    let {expressionTextStyle} = this.state;
+    let { expressionTextStyle } = this.state;
     return (
       <View style={styles.container}>
         <View style={styles.result}>
@@ -164,17 +188,19 @@ export default class App extends React.Component {
           </Text>
         </View>
         <View style={styles.calculation}>
-          <Text
-            style={styles.calculationText}
-          >
-            {this.state.result}
-          </Text>
+          <Text style={styles.calculationText}>{this.state.result}</Text>
         </View>
 
         <View style={styles.buttons}>
           <View style={styles.numbers}>
             <View style={styles.numgroup}>
-              <Key symbol={"H"} echoSymbol={this._echoSymbol} />
+              <Key
+                setIcon={true}
+                name="history"
+                iconType="MaterialIcons"
+                symbol={"H"}
+                echoSymbol={this._echoSymbol}
+              />
               <Key symbol={"1"} echoSymbol={this._echoSymbol} />
               <Key symbol={"2"} echoSymbol={this._echoSymbol} />
               <Key symbol={"3"} echoSymbol={this._echoSymbol} />
@@ -192,7 +218,6 @@ export default class App extends React.Component {
             </View>
             <View style={styles.numgroup}>
               <Key symbol={"."} echoSymbol={this._echoSymbol} />
-              <Key symbol={","} echoSymbol={this._echoSymbol} />
               <Key symbol={"="} echoSymbol={this._echoSymbol} />
             </View>
           </View>
@@ -207,11 +232,22 @@ export default class App extends React.Component {
                 op={true}
                 backgroundColor="#ff7675"
                 symbol={"CLR"}
+                setIcon={true}
+                name="clear-all"
+                iconType="MaterialIcons"
                 echoSymbol={this._echoSymbol}
               />
             </View>
             <View style={styles.numgroup}>
-              <Key op={true} symbol={"DEL"} echoSymbol={this._echoSymbol} />
+              <Key
+                op={true}
+                setIcon={true}
+                name="delete"
+                iconType="Feather"
+                backgroundColor="#3e3e3e"
+                symbol={"DEL"}
+                echoSymbol={this._echoSymbol}
+              />
             </View>
             <View style={styles.numgroup}>
               <Key op={true} symbol={"/"} echoSymbol={this._echoSymbol} />
@@ -222,24 +258,60 @@ export default class App extends React.Component {
               <Key op={true} symbol={"*"} echoSymbol={this._echoSymbol} />
             </View>
             <View style={styles.numgroup}>
-              <Key op={true} symbol={"^"} echoSymbol={this._echoSymbol} />
-              <Key op={true} symbol={"sin"} echoSymbol={this._echoSymbol} />
+              <Key
+                op={true}
+                setIcon={true}
+                iconType="MaterialCommunityIcons"
+                name="exponent"
+                symbol={"^"}
+                echoSymbol={this._echoSymbol}
+              />
+              <Key
+                op={true}
+                symbol={"sin"}
+                echoSymbol={() => this._echoSymbol("sin(")}
+              />
             </View>
             <View style={styles.numgroup}>
-              <Key op={true} symbol={"cos"} echoSymbol={this._echoSymbol} />
-              <Key op={true} symbol={"tan"} echoSymbol={this._echoSymbol} />
+              <Key
+                op={true}
+                symbol={"cos"}
+                echoSymbol={() => this._echoSymbol("cos(")}
+              />
+              <Key
+                op={true}
+                symbol={"tan"}
+                echoSymbol={() => this._echoSymbol("tan(")}
+              />
             </View>
             <View style={styles.numgroup}>
               <Key op={true} symbol={"("} echoSymbol={this._echoSymbol} />
               <Key op={true} symbol={")"} echoSymbol={this._echoSymbol} />
             </View>
             <View style={styles.numgroup}>
-              <Key op={true} symbol={"log"} echoSymbol={this._echoSymbol} />
-              <Key op={true} symbol={"pow"} echoSymbol={this._echoSymbol} />
+              <Key
+                op={true}
+                symbol={"log"}
+                echoSymbol={() => this._echoSymbol("log(")}
+              />
+              <Key
+                op={true}
+                setIcon={true}
+                name="pi"
+                iconType="MaterialCommunityIcons"
+                symbol={"pi"}
+                echoSymbol={this._echoSymbol}
+              />
             </View>
             <View style={styles.numgroup}>
-              <Key op={true} symbol={"pi"} echoSymbol={this._echoSymbol} />
-              <Key op={true} symbol={"sqrt"} echoSymbol={this._echoSymbol} />
+              <Key
+                op={true}
+                setIcon={true}
+                name="square-root"
+                iconType="MaterialCommunityIcons"
+                symbol={"sqrt"}
+                echoSymbol={() => this._echoSymbol("sqrt(")}
+              />
             </View>
           </ScrollView>
         </View>
@@ -287,8 +359,5 @@ const styles = StyleSheet.create({
   other: {
     flex: 1,
     backgroundColor: "#4f9a94"
-  },
-  contentContainerStyle: {
-    backgroundColor: "red"
   }
 });
