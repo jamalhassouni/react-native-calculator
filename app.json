@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "react native calculator",
+    "name": "calculator",
     "description": "Simple  react native Calculator Mobile App",
     "slug": "react-native-calculator",
     "privacy": "public",
     "sdkVersion": "31.0.0",
     "platforms": ["ios", "android"],
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/app-icon.png",
     "githubUrl":"https://github.com/jamalhassouni/react-native-calculator",
