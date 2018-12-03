@@ -30,7 +30,7 @@ export default class App extends React.Component {
       this._calculateResult();
     } else if (symbol === "DEL") {
       this._rollbackExpression();
-    } else if (symbol === "CLR") {
+    } else if (symbol === "C") {
       this._clearExpression();
     } else if (symbol == "H") {
       this.setState(prevState => ({
@@ -53,15 +53,22 @@ export default class App extends React.Component {
   _rollbackExpression() {
     if (this.state.expression !== "") {
       let result = this.state.result;
+      let regex = /[A-Za-z√(]+|\d+|[)]|[+-/*^]|[π]/gm;
       let preLastSecond;
       // convert expression to array
-      let newExperssion = this.state.expression.toString().split(/(\b)/g);
+      let newExperssion = this.state.expression.toString().match(regex);
       // remove space form  array
       newExperssion = newExperssion.filter(e => e.trim() !== "");
       newExperssion = newExperssion.slice(0, newExperssion.length - 1);
       // try to calculate new expression
       try {
-        result = math.eval(newExperssion.join("").replace('log','log10'));
+        result = math.eval(
+          newExperssion
+            .join("")
+            .replace("log", "log10")
+            .replace("π", "pi")
+            .replace("√", "sqrt")
+        );
       } catch (e) {
         // get last character
         let lastChar = newExperssion[newExperssion.length - 1];
@@ -74,12 +81,16 @@ export default class App extends React.Component {
             result =
               newExperssion.slice(0, newExperssion.length - 1).join("") + ")";
             //  calculate string result
-            result = result.replace('log','log10');
+            result = result.replace("log", "log10");
+            result = result.replace("π", "pi");
+            result = result.replace("√", "sqrt");
             result = math.eval(result);
           } else {
             result = newExperssion.slice(0, newExperssion.length - 1).join("");
             try {
-              result = result.replace('log','log10');
+              result = result.replace("log", "log10");
+              result = result.replace("π", "pi");
+              result = result.replace("√", "sqrt");
               result = math.eval(result);
             } catch (e) {
               console.log("ReferenceError: ", e);
@@ -94,7 +105,9 @@ export default class App extends React.Component {
             result = newExperssion.slice(0, newExperssion.length - 1).join("");
             try {
               //  calculate string result
-              result = result.replace('log','log10');
+              result = result.replace("log", "log10");
+              result = result.replace("π", "pi");
+              result = result.replace("√", "sqrt");
               result = math.eval(result);
             } catch (e) {
               console.log("ReferenceError: ", e);
@@ -114,10 +127,11 @@ export default class App extends React.Component {
   _assembleExpression(symbol) {
     let newExperssion;
     let result = this.state.result;
-   // console.log(symbol,symbol.replace('log','log10'));
     try {
-       expression =  this.state.expression + symbol;
-       expression = expression.replace('log','log10');
+      expression = this.state.expression + symbol;
+      expression = expression.replace("log", "log10");
+      expression = expression.replace("π", "pi");
+      expression = expression.replace("√", "sqrt");
       result = math.eval(expression);
       this.setState(prevState => ({
         lastexpression: [...prevState.lastexpression, prevState.expression],
@@ -133,7 +147,9 @@ export default class App extends React.Component {
       ) {
         newExperssion[newExperssion.length - 1] = symbol;
         result = newExperssion.slice(0, newExperssion.length - 1).join("");
-        result= result.replace('log','log10');
+        result = result.replace("log", "log10");
+        result = result.replace("π", "pi");
+        result = result.replace("√", "sqrt");
         result = math.eval(result);
       } else if (
         this.state.operations.indexOf(symbol) > -1 &&
@@ -143,7 +159,9 @@ export default class App extends React.Component {
         newExperssion.push(symbol);
         newExperssion[newExperssion.length - 1] = symbol;
         result = newExperssion.slice(0, newExperssion.length - 1).join("");
-        result = result.replace('log','log10');
+        result = result.replace("log", "log10");
+        result = result.replace("π", "pi");
+        result = result.replace("√", "sqrt");
         result = math.eval(result);
       } else {
         if (typeof newExperssion != "string") {
@@ -166,7 +184,12 @@ export default class App extends React.Component {
   _calculateResult() {
     let result;
     try {
-      result = math.eval(this.state.expression);
+      result = math.eval(
+        this.state.expression
+          .replace("log", "log10")
+          .replace("π", "pi")
+          .replace("√", "sqrt")
+      );
     } catch (e) {
       result = "Syntax Error";
     }
@@ -231,10 +254,7 @@ export default class App extends React.Component {
               <Key
                 op={true}
                 backgroundColor="#ff7675"
-                symbol={"CLR"}
-                setIcon={true}
-                name="clear-all"
-                iconType="MaterialIcons"
+                symbol={"C"}
                 echoSymbol={this._echoSymbol}
               />
             </View>
@@ -300,7 +320,7 @@ export default class App extends React.Component {
                 name="pi"
                 iconType="MaterialCommunityIcons"
                 symbol={"pi"}
-                echoSymbol={this._echoSymbol}
+                echoSymbol={() => this._echoSymbol("π")}
               />
             </View>
             <View style={styles.numgroup}>
@@ -310,7 +330,7 @@ export default class App extends React.Component {
                 name="square-root"
                 iconType="MaterialCommunityIcons"
                 symbol={"sqrt"}
-                echoSymbol={() => this._echoSymbol("sqrt(")}
+                echoSymbol={() => this._echoSymbol("√(")}
               />
             </View>
           </ScrollView>
